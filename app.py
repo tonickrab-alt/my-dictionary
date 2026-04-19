@@ -199,7 +199,7 @@ HTML_SIGNUP = """
 <div class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
     <h2 style="color: #2c3e50; margin-bottom: 25px;">✨ สมัครสมาชิก</h2>
     <form method="POST" action="/signup">
-        <input type="text" name="username" required placeholder="ตั้งชื่อผู้ใช้เท่ๆ (พิมพ์ admin เพื่อเป็นผู้ดูแล)">
+        <input type="text" name="username" required placeholder="ตั้งชื่อผู้ใช้เท่ๆ">
         <input type="password" name="password" required placeholder="ตั้งรหัสผ่าน">
         <button type="submit" class="btn-green" style="margin-top: 15px; width: 100%;">🎉 สมัครสมาชิก</button>
     </form>
