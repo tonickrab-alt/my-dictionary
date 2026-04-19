@@ -553,16 +553,32 @@ def vote_word(word_id, type):
     username = session['username']
     conn = get_db_connection()
     exist_vote = conn.execute('SELECT * FROM votes WHERE word_id = ? AND username = ?', (word_id, username)).fetchone()
+    
     if exist_vote:
         flash('คุณลงคะแนนให้คำนี้ไปแล้ว เปลี่ยนใจไม่ได้หรอกนะ!', 'warning')
+        conn.close()
     else:
+        # 1. เขียนคะแนนโหวตลงไปก่อน
         conn.execute('INSERT INTO votes (word_id, username, vote_type) VALUES (?, ?, ?)', (word_id, username, type))
         if type == 'like':
             conn.execute('UPDATE words SET likes = likes + 1 WHERE id = ?', (word_id,))
-            log_action(username, f'ปา Like ใส่คำศัพท์ ID:{word_id}')
         elif type == 'dislike':
             conn.execute('UPDATE words SET dislikes = dislikes + 1 WHERE id = ?', (word_id,))
+        
+        # 2. บันทึกและปิดฐานข้อมูลหลักให้เรียบร้อย (ป้องกัน DB Locked)
+        conn.commit()
+        conn.close()
+        
+        # 3. ค่อยมาจดประวัติการทำรายการทีหลัง
+        if type == 'like':
+            log_action(username, f'ปา Like ใส่คำศัพท์ ID:{word_id}')
+        elif type == 'dislike':
             log_action(username, f'แจก Dislike ให้คำศัพท์ ID:{word_id}')
+            
+        flash('บันทึกคะแนนโหวตเรียบร้อย!', 'success')
+        
+    return redirect(url_for('view_word', word_id=word_id))
+
         conn.commit()
         flash('บันทึกคะแนนโหวตเรียบร้อย!', 'success')
     conn.close()
