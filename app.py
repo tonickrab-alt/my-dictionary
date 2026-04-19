@@ -579,7 +579,7 @@ def vote_word(word_id, type):
         
     return redirect(url_for('view_word', word_id=word_id))
 
-    conn.commit()
+    conn.commit()                  
         flash('บันทึกคะแนนโหวตเรียบร้อย!', 'success')
     conn.close()
     return redirect(url_for('view_word', word_id=word_id))
