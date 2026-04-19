@@ -4,9 +4,11 @@ from flask import Flask, request, render_template_string, redirect, url_for, ses
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_key_v2'
+app.secret_key = 'super_secret_key_v3'
 
-# --- ระบบฐานข้อมูล ---
+# ==========================================
+# 1. ระบบฐานข้อมูล
+# ==========================================
 def get_db_connection():
     conn = sqlite3.connect('opendict.db')
     conn.row_factory = sqlite3.Row
@@ -14,7 +16,6 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
-    # ตารางผู้ใช้งาน
     conn.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +24,6 @@ def init_db():
             role TEXT NOT NULL
         )
     ''')
-    # ตารางคำศัพท์
     conn.execute('''
         CREATE TABLE IF NOT EXISTS words (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,9 @@ def init_db():
     conn.commit()
     conn.close()
 
-# --- โครงสร้างหน้าเว็บ (Templates) ---
+# ==========================================
+# 2. โครงสร้างหน้าเว็บ (แก้ปัญหา Block ซ้ำซ้อนแล้ว!)
+# ==========================================
 base_html = '''
 <!DOCTYPE html>
 <html lang="th">
@@ -79,15 +81,13 @@ base_html = '''
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        {% block content %}{% endblock %}
-    </div>
+        
+        </div>
 </body>
 </html>
 '''
 
 home_html = '''
-{% extends "base" %}
-{% block content %}
 <div class="text-center mb-5">
     <h1 class="display-5 fw-bold text-dark">พจนานุกรมเปิดเสรี</h1>
     <p class="text-muted">แหล่งรวบรวมคำศัพท์ที่ทุกคนช่วยกันสร้าง</p>
@@ -113,12 +113,9 @@ home_html = '''
     </div>
     {% endfor %}
 </div>
-{% endblock %}
 '''
 
 signup_html = '''
-{% extends "base" %}
-{% block content %}
 <div class="card shadow mx-auto" style="max-width: 450px;">
     <div class="card-body p-5">
         <h2 class="text-center mb-4 fw-bold">สมัครสมาชิก</h2>
@@ -135,12 +132,9 @@ signup_html = '''
         </form>
     </div>
 </div>
-{% endblock %}
 '''
 
 login_html = '''
-{% extends "base" %}
-{% block content %}
 <div class="card shadow mx-auto" style="max-width: 450px;">
     <div class="card-body p-5">
         <h2 class="text-center mb-4 fw-bold">เข้าสู่ระบบ</h2>
@@ -157,12 +151,9 @@ login_html = '''
         </form>
     </div>
 </div>
-{% endblock %}
 '''
 
 nominate_html = '''
-{% extends "base" %}
-{% block content %}
 <div class="card shadow p-4">
     <h2 class="mb-4 fw-bold">เสนอคำศัพท์ใหม่</h2>
     <form method="POST">
@@ -175,14 +166,11 @@ nominate_html = '''
             <textarea class="form-control" name="meaning" rows="4" placeholder="อธิบายความหมาย..." required></textarea>
         </div>
         <button type="submit" class="btn btn-primary px-4 py-2">ส่งให้แอดมินพิจารณา</button>
-    </nav>
+    </form>
 </div>
-{% endblock %}
 '''
 
 admin_html = '''
-{% extends "base" %}
-{% block content %}
 <h2 class="mb-4 fw-bold">🛡️ แผงควบคุมผู้ดูแลระบบ</h2>
 <div class="card shadow">
     <div class="card-header bg-white fw-bold py-3">คำศัพท์ที่รอการตรวจสอบ</div>
@@ -214,12 +202,14 @@ admin_html = '''
         </table>
     </div>
 </div>
-{% endblock %}
 '''
 
-# --- ระบบ Logic ---
+# ==========================================
+# 3. ระบบทำงานร่วมกัน (Logic)
+# ==========================================
 def render_page(template_string, **kwargs):
-    full_template = template_string.replace('{% extends "base" %}', base_html)
+    # เทคนิคใหม่: แทนที่ข้อความตรงๆ ไม่ต้องใช้ block ให้ปวดหัว
+    full_template = base_html.replace('', template_string)
     return render_template_string(full_template, **kwargs)
 
 @app.route('/')
@@ -320,3 +310,4 @@ if __name__ == '__main__':
     init_db()
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
+
