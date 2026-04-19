@@ -681,6 +681,8 @@ def admin_toggle_vote(word_id):
     flash(f'{action} สำหรับคำว่า "{word["term"]}" สำเร็จ', 'success')
     return redirect(url_for('admin_dashboard'))
 
+# แบบใหม่ที่ใช้บน Railway
 if __name__ == '__main__':
-    init_db()
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
