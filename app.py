@@ -4,11 +4,9 @@ from flask import Flask, request, render_template_string, redirect, url_for, ses
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_key_v3'
+app.secret_key = 'super_secret_key_v2'
 
-# ==========================================
-# 1. ระบบฐานข้อมูล
-# ==========================================
+# --- ระบบฐานข้อมูล ---
 def get_db_connection():
     conn = sqlite3.connect('opendict.db')
     conn.row_factory = sqlite3.Row
@@ -16,6 +14,7 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
+    # ตารางผู้ใช้งาน
     conn.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +23,7 @@ def init_db():
             role TEXT NOT NULL
         )
     ''')
+    # ตารางคำศัพท์
     conn.execute('''
         CREATE TABLE IF NOT EXISTS words (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,9 +36,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ==========================================
-# 2. โครงสร้างหน้าเว็บ (แก้ปัญหา Block ซ้ำซ้อนแล้ว!)
-# ==========================================
+# --- โครงสร้างหน้าเว็บ (Templates) ---
 base_html = '''
 <!DOCTYPE html>
 <html lang="th">
@@ -82,7 +80,10 @@ base_html = '''
             {% endif %}
         {% endwith %}
         
-        </div>
+        <!-- จุดวางเนื้อหาแทนของเก่าที่ทำให้เกิด Error -->
+        <!-- CONTENT_PLACEHOLDER -->
+        
+    </div>
 </body>
 </html>
 '''
@@ -204,12 +205,10 @@ admin_html = '''
 </div>
 '''
 
-# ==========================================
-# 3. ระบบทำงานร่วมกัน (Logic)
-# ==========================================
+# --- ระบบ Logic ---
 def render_page(template_string, **kwargs):
-    # เทคนิคใหม่: แทนที่ข้อความตรงๆ ไม่ต้องใช้ block ให้ปวดหัว
-    full_template = base_html.replace('', template_string)
+    # วางเนื้อหาลงใน base_html ตรงตำแหน่ง <!-- CONTENT_PLACEHOLDER -->
+    full_template = base_html.replace('<!-- CONTENT_PLACEHOLDER -->', template_string)
     return render_template_string(full_template, **kwargs)
 
 @app.route('/')
@@ -310,4 +309,3 @@ if __name__ == '__main__':
     init_db()
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
-
