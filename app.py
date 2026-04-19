@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, request, render_template_string, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -10,6 +10,10 @@ app.secret_key = 'krian_dictionary_secret_super_safe'
 # ==========================================
 # 1. ระบบฐานข้อมูล (Database) & ประวัติ (Audit)
 # ==========================================
+def get_thai_time():
+    # บังคับเวลาให้เป็นโซนไทย (UTC+7) เสมอ
+    return datetime.utcnow() + timedelta(hours=7)
+
 def get_db_connection():
     conn = sqlite3.connect('opendict.db')
     conn.row_factory = sqlite3.Row
@@ -440,7 +444,8 @@ def render_page(template_string, **kwargs):
     return render_template_string(full_template, **kwargs)
 
 def is_sunday():
-    return datetime.now().weekday() == 6  # 0=Mon, ..., 6=Sun
+    # เช็ควันอาทิตย์ตามเวลาประเทศไทยเป๊ะๆ (6 = วันอาทิตย์)
+    return get_thai_time().weekday() == 6
 
 @app.before_request
 def require_login():
@@ -566,7 +571,7 @@ def vote_word(word_id, type):
 @app.route('/comment/<int:word_id>', methods=['POST'])
 def add_comment(word_id):
     comment_text = request.form['comment']
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    timestamp = get_thai_time().strftime("%Y-%m-%d %H:%M")  # แก้ตรงนี้
     conn = get_db_connection()
     conn.execute('INSERT INTO comments (word_id, username, comment, created_at) VALUES (?, ?, ?, ?)',
                  (word_id, session['username'], comment_text, timestamp))
