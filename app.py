@@ -42,55 +42,6 @@ def init_db():
 # ==========================================
 # 2. โค้ดหน้าเว็บ (HTML Templates)
 # ==========================================
-# โครงสร้างหลักของเว็บ (เมนูบาร์)
-base_html = '''
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>พจนานุกรมเสรี</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Sarabun', sans-serif; }
-        .navbar { background-color: #2c3e50; }
-        .navbar-brand, .nav-link { color: white !important; }
-        .container-main { max-width: 800px; margin-top: 30px; }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('home') }}">📚 พจนานุกรมเสรี</a>
-            <div>
-                {% if session.get('username') %}
-                    <span class="text-white me-3">สวัสดี, {{ session['username'] }}</span>
-                    <a href="{{ url_for('nominate') }}" class="btn btn-outline-light btn-sm me-2">เพิ่มคำศัพท์</a>
-                    {% if session.get('role') == 'admin' %}
-                        <a href="{{ url_for('admin_panel') }}" class="btn btn-warning btn-sm me-2">จัดการ (Admin)</a>
-                    {% endif %}
-                    <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">ออกจากระบบ</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-sm me-2">เข้าสู่ระบบ</a>
-                    <a href="{{ url_for('signup') }}" class="btn btn-success btn-sm">สมัครสมาชิก</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-    <div class="container container-main">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </div>
-</body>
-</html>
-'''
-
 # หน้าแรก (Home)
 home_html = '{% extends "base" %}{% block content %}' + '''
 <h2 class="mb-4">📖 คำศัพท์ทั้งหมด</h2>
